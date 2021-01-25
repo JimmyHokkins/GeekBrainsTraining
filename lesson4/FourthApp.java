@@ -6,11 +6,13 @@ import java.util.Scanner;
 public class FourthApp {
 
     public static char[][] map;
-    public static final int SIZE = 9;
-    public static final int DOTS_TO_WIN = 5;
+    public static final int SIZE = 5;
+    public static final int DOTS_TO_WIN = 4;
     public static final char DOT_EMPTY = '.';
     public static final char DOT_X = 'X';
     public static final char DOT_O = 'O';
+    public static int xComp;
+    public static int yComp;
 
     public static final Scanner sc = new Scanner(System.in);
     public static final Random rand = new Random();
@@ -134,151 +136,156 @@ public class FourthApp {
     }
 
     public static void aiTurn() {
-        int x, y;
-
-        if (!checkFirstDiagonal(DOTS_TO_WIN - 1)) {
-            if (!checkSecondDiagonal(DOTS_TO_WIN - 1)) {
-                if (!checkRows(DOTS_TO_WIN - 1)) {
-                    if (!checkColumns(DOTS_TO_WIN - 1)) {
-                        if (!checkFirstDiagonal(DOTS_TO_WIN - 2)) {
-                            if (!checkSecondDiagonal(DOTS_TO_WIN - 2)) {
-                                if (!checkRows(DOTS_TO_WIN - 2)) {
-                                    if (!checkColumns(DOTS_TO_WIN - 2)){
-                                        do {
-                                            x = rand.nextInt(SIZE);
-                                            y = rand.nextInt(SIZE);
-                                        } while (!isCellValid(x, y));
-                                        map[x][y] = DOT_O;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+        if (!checkWinIfOneMoveHuman()) {
+            if (!blockingHumanMove()) {
+                do {
+                    xComp = rand.nextInt(SIZE);
+                    yComp = rand.nextInt(SIZE);
+                } while (!isCellValid(xComp, yComp));
             }
         }
+        map[xComp][yComp] = DOT_O;
     }
 
 
     //--AI--------------------------------------------------------
-    public static boolean checkFirstDiagonal(int mH) {
+
+    public static boolean checkLinePossibleWin(char[] line) {
         int counter = 0;
-        for (int i = 0; i < SIZE; i++) {
-            if (map[i][i] == DOT_X) {
+        char[] save = new char[line.length];
+        for (int i = 0; i < line.length; i++) {
+            save[i] = line[i];
+            if (line[i] == DOT_EMPTY) line[i] = DOT_X;
+        }
+        for (int j : line) {
+            if (j == DOT_X) {
                 counter++;
-                if (counter == mH) {
-                    if (i - mH >= 0 && map[i - mH][i - mH] == DOT_EMPTY) {
-                        map[i - mH][i - mH] = DOT_X;
-                        if (checkWin(DOT_X)) {
-                            map[i - mH][i - mH] = DOT_O;
-                            return true;
-                        }
-                        else map[i - mH][i - mH] = DOT_EMPTY;
-                    }
-                    if (i + 1 < SIZE && map[i + 1][i + 1] == DOT_EMPTY) {
-                        map[i + 1][i + 1] = DOT_X;
-                        if (checkWin(DOT_X)) {
-                            map[i + 1][i + 1] = DOT_O;
-                            return true;
-                        }
-                        else map[i + 1][i + 1] = DOT_EMPTY;
-                    }
+                if (counter == DOTS_TO_WIN) {
+                    System.arraycopy(save, 0, line, 0, line.length);
+                    return true;
                 }
             }
             else counter = 0;
         }
+        System.arraycopy(save, 0, line, 0, line.length);
         return false;
     }
 
-    public static boolean checkSecondDiagonal(int mH) {
-        int counter = 0;
-        for (int i = 0, j = SIZE - 1; i < SIZE; i++, j--) {
-            if (map[i][j] == DOT_X) {
-                counter++;
-                if (counter == mH) {
-                    if ((i - mH >= 0) && (j + mH < SIZE) && (map[i - mH][j + mH] == DOT_EMPTY)) {
-                        map[i - mH][j + mH] = DOT_X;
-                        if (checkWin(DOT_X)) {
-                            map[i - mH][j + mH] = DOT_O;
-                            return true;
-                        }
-                        else map[i - mH][j + mH] = DOT_EMPTY;
-                    }
-                    if ((i + 1 < SIZE) && (j - 1 >= 0) && (map[i + 1][j - 1] == DOT_EMPTY)) {
-                        map[i + 1][j - 1] = DOT_X;
-                        if (checkWin(DOT_X)) {
-                            map[i + 1][j - 1] = DOT_O;
-                            return true;
-                        }
-                        else map[i + 1][j - 1] = DOT_EMPTY;
-                    }
-                }
-            }
-            else counter = 0;
-        }
-        return false;
-    }
-
-    public static boolean checkRows(int mH) {
-        int counter = 0;
+    public static boolean checkWinIfOneMoveHuman() {
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
-                if (map[i][j] == DOT_X) {
-                    counter++;
-                    if (counter == mH) {
-                        if ((j - mH >= 0) && (map[i][j - mH] == DOT_EMPTY)) {
-                            map[i][j - mH] = DOT_X;
-                            if (checkWin(DOT_X)) {
-                                map[i][j - mH] = DOT_O;
-                                return true;
-                            }
-                            else map[i][j - mH] = DOT_EMPTY;
-                        }
-                        if ((j + 1 < SIZE) && (map[i][j + 1] == DOT_EMPTY)) {
-                            map[i][j + 1] = DOT_X;
-                            if (checkWin(DOT_X)) {
-                                map[i][j + 1] = DOT_O;
-                                return true;
-                            }
-                            else map[i][j + 1] = DOT_EMPTY;
-                        }
+                if (map[i][j] == DOT_EMPTY) {
+                    map[i][j] = DOT_X;
+                    if (checkWin(DOT_X)) {
+                        xComp = i;
+                        yComp = j;
+                        return true;
                     }
-                } else counter = 0;
+                    else map[i][j] = DOT_EMPTY;
+                }
             }
         }
         return false;
     }
 
-    public static boolean checkColumns(int mH) {
-        int counter = 0;
-        for (int j = 0; j < SIZE; j++) {
+    public static boolean blockingHumanMove() {
+        char[] lineFirstDiagonal = new char[SIZE];
+        char[] lineSecondDiagonal = new char[SIZE];
+        char[] lineRow = new char[SIZE];
+        char[] lineColumn = new char[SIZE];
+        int move;
+
+        for (int i = 0; i < SIZE; i++) {
+            lineFirstDiagonal[i] = map[i][i];
+        }
+        for (int i = 0, j = SIZE - 1; i < SIZE; i++, j--) {
+            lineSecondDiagonal[i] = map[i][j];
+        }
+
+        for (int t = 3; t > 1; t--) {
+            if (checkLinePossibleWin(lineFirstDiagonal)) {
+                move = smartCompMove(lineFirstDiagonal, t);
+                if (move != -1) {
+                    xComp = move;
+                    yComp = move;
+                    return true;
+                }
+            }
+            //--------------------------------------------------------
+            if (checkLinePossibleWin(lineSecondDiagonal)) {
+                move = smartCompMove(lineSecondDiagonal, t);
+                if (move != -1) {
+                    xComp = move;
+                    yComp = SIZE - 1 - move;
+                    return true;
+                }
+            }
+            //---------------------------------------------------------
+
             for (int i = 0; i < SIZE; i++) {
-                if (map[i][j] == DOT_X) {
-                    counter++;
-                    if (counter == mH) {
-                        if ((i - mH >= 0) && (map[i - mH][j] == DOT_EMPTY)) {
-                            map[i - mH][j] = DOT_X;
-                            if (checkWin(DOT_X)) {
-                                map[i - mH][j] = DOT_O;
-                                return true;
-                            }
-                            else map[i - mH][j] = DOT_EMPTY;
-                        }
-                        if ((i + 1 < SIZE) && (map[i + 1][j] == DOT_EMPTY)) {
-                            map[i + 1][j] = DOT_X;
-                            if (checkWin(DOT_X)) {
-                                map[i + 1][j] = DOT_O;
-                                return true;
-                            }
-                            else map[i + 1][j] = DOT_EMPTY;
-                        }
+                System.arraycopy(map[i], 0, lineRow, 0, SIZE);
+                if (checkLinePossibleWin(lineRow)) {
+                    move = smartCompMove(lineRow, t);
+                    if (move != -1) {
+                        xComp = i;
+                        yComp = move;
+                        return true;
                     }
-                } else counter = 0;
+                }
+            }
+            // ---------------------------------------------------------
+            for (int j = 0; j < SIZE; j++) {
+                for (int i = 0; i < SIZE; i++) {
+                    lineColumn[i] = map[i][j];
+                }
+                if (checkLinePossibleWin(lineColumn)) {
+                    move = smartCompMove(lineColumn, t);
+                    if (move != -1) {
+                        xComp = move;
+                        yComp = j;
+                        return true;
+                    }
+                }
             }
         }
         return false;
     }
 
-
+    public static int smartCompMove(char[] line, int countEmpty) {
+        int emptyCounter = 0;
+        int humanCounter = 0;
+        for (int i = 0; i < SIZE; i++) {
+            if (line[i] == DOT_EMPTY) emptyCounter++;
+            if (line[i] == DOT_X) humanCounter++;
+        }
+        if (emptyCounter == countEmpty && humanCounter == 2) {
+            if (line[0] == DOT_EMPTY && line[SIZE - 1] == DOT_EMPTY) {
+                for (int i = 0; i < SIZE; i++) {
+                    if (i > 0 && i < SIZE - 1 && line[i] == DOT_EMPTY &&
+                            line[i - 1] == DOT_X && line[i + 1] == DOT_X) {
+                        return i;
+                    }
+                }
+                for (int i = 0; i < SIZE; i++) {
+                    if (i > 0 && i < SIZE - 1 && line[i] == DOT_EMPTY &&
+                            ((line[i - 1] == DOT_EMPTY && line[i + 1] == DOT_X) ||
+                                    (line[i - 1] == DOT_X && line[i + 1] == DOT_EMPTY))) {
+                        return i;
+                    }
+                }
+            }
+            for (int i = 0; i < SIZE; i++) {
+                if (i > 0 && i < SIZE - 1 && line[i] == DOT_EMPTY &&
+                        ((line[i - 1] == DOT_EMPTY && line[i + 1] == DOT_X) ||
+                                (line[i - 1] == DOT_X && line[i + 1] == DOT_EMPTY))) {
+                    return i;
+                }
+            }
+            for (int i = 0; i < SIZE; i++) {
+                if (line[i] == DOT_EMPTY) return i;
+            }
+        }
+        return -1;
+    }
 
 }
