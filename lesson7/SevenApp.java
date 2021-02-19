@@ -1,5 +1,7 @@
 package lesson7;
 
+import java.util.ArrayList;
+
 public class SevenApp {
 
     public static void main(String[] args) {
@@ -24,5 +26,7 @@ public class SevenApp {
         System.out.println("*********************************************************");
         System.out.println("OK... Finish... OUR RESULTS:");
         team.showTeamInfoOut();
+
+        ArrayList<String> list = new ArrayList<>();
     }
 }
