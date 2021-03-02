@@ -1,26 +1,21 @@
 package lesson8;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class PhoneBook {
-    private Map<String, String> book;
+    private Map<String, Set<String>> book;
 
     public PhoneBook() {
         this.book = new HashMap<>();
     }
 
     public void add(String lastName, String phoneNumber) {
-        book.put(phoneNumber, lastName);
+        if (!book.containsKey(lastName)) book.put(lastName, new HashSet<>());
+        book.get(lastName).add(phoneNumber);
     }
 
-    public ArrayList<String> get(String lastName) {
-        ArrayList<String> result = new ArrayList<>();
-        for (Map.Entry<String, String> item : book.entrySet()) {
-            if (item.getValue().equals(lastName)) result.add(item.getKey());
-        }
-        return result;
+    public Set<String> get(String lastName) {
+        return book.get(lastName);
     }
 
 }
