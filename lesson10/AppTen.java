@@ -30,8 +30,8 @@ public class AppTen {
         float[] part2 = new float[HALF];
         System.arraycopy(arr, 0, part1, 0, HALF);
         System.arraycopy(arr, HALF, part2, 0, HALF);
-        ArrayCalc thread1 = new ArrayCalc(part1);
-        ArrayCalc thread2 = new ArrayCalc(part2);
+        ArrayCalc thread1 = new ArrayCalc(part1, 0);
+        ArrayCalc thread2 = new ArrayCalc(part2, HALF);
         try {
             thread1.getThrd().join();
             thread2.getThrd().join();
