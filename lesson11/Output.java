@@ -26,10 +26,7 @@ public class Output implements Runnable {
             while (true) {
                 String msg = br.readLine();
                 if (!msg.isEmpty()) output.writeUTF(msg);
-                if (msg.equals("/stop")) {
-                    output.close();
-                    break;
-                }
+                if (msg.equals("/stop")) break;
             }
         } catch (IOException e) {
             System.out.println("Connection is lost...");

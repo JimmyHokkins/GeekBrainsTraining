@@ -23,10 +23,7 @@ public class Input implements Runnable {
         try (input) {
             while (true) {
                 String inputStr = input.readUTF();
-                if (inputStr.equals("/stop")) {
-                    input.close();
-                    break;
-                }
+                if (inputStr.equals("/stop")) break;
                 System.out.println(inputStr);
             }
         } catch (IOException e) {
