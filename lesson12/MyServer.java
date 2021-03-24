@@ -50,19 +50,30 @@ public class MyServer {
         }
     }
 
+    public synchronized void sendMsgToClient(ClientHandler from, String nickTo, String msg) {
+        for (ClientHandler client : clients) {
+            if (client.getName().equals(nickTo)) {
+                client.sendMsg("from " + from.getName() + ": " + msg);
+                from.sendMsg("to " + nickTo + ": " + msg);
+                return;
+            }
+        }
+        from.sendMsg("There is no such chat member.");
+    }
+
     public synchronized void unsubscribe(ClientHandler o) {
         clients.remove(o);
     }
     public synchronized void subscribe(ClientHandler o) {
         clients.add(o);
     }
-    public synchronized String getStringClients() {
-        StringBuilder members = new StringBuilder();
+    public synchronized void broadcastClientsList() {
+        StringBuilder members = new StringBuilder("/clients ");
         for (ClientHandler client : clients) {
             members.append(client.getName());
             members.append('\n');
         }
-        return members.toString();
+        broadcastMsg(members.toString());
     }
 
 

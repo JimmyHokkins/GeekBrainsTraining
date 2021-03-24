@@ -14,30 +14,33 @@ public class Client extends JFrame {
     private DataInputStream in;
     private DataOutputStream out;
     private boolean authorized;
+    private String myNick;
 
     private JTextField loginField;
     private JTextField passField;
-    private JPanel loginPanel;
 
     private JTextArea chatArea;
     private JTextArea chatMembers;
     private JTextField textMsg;
 
     public Client() {
+        createChatWindow();
+    }
+
+    public void start() {
         try {
             socket = new Socket("localhost", MyServer.PORT);
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
-            showEnterWindow();
             setAuthorized(false);
             Thread t = new Thread(() -> {
                 try {
                     while (true) {
                         String strFromServer = in.readUTF();
-                        if (strFromServer.startsWith("/authok")) {
+                        if (strFromServer.startsWith("/authok ")) {
                             setAuthorized(true);
-                            hideLoginControls();
-                            showControlsChat();
+                            createChatControls();
+                            myNick = strFromServer.split("\\s")[1];
                             break;
                         }
                         else {
@@ -47,11 +50,10 @@ public class Client extends JFrame {
                     while (true) {
                         String strFromServer = in.readUTF();
                         if (strFromServer.startsWith("/end")) {
-                            chatArea.append("You left the chat.");
-                            chatMembers.setText("");
+                            createLoginControls();
                             break;
                         }
-                        if (strFromServer.startsWith("/members")) {
+                        if (strFromServer.startsWith("/clients")) {
                             chatMembers.setText("Chat members: \n");
                             chatMembers.append(strFromServer.split("\\s", 2)[1]);
                         }
@@ -62,6 +64,14 @@ public class Client extends JFrame {
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
+                } finally {
+                    try {
+                        setAuthorized(false);
+                        socket.close();
+                        myNick = "";
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             });
             t.setDaemon(true);
@@ -75,7 +85,7 @@ public class Client extends JFrame {
         this.authorized = authorized;
     }
 
-    private void showEnterWindow() {
+    private void createChatWindow() {
         setTitle("Super chat");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -84,12 +94,12 @@ public class Client extends JFrame {
         int height = (int) (dimension.height * 0.6);
         setBounds(dimension.width / 2 - width / 2, dimension.height / 2 - height / 2, width, height);
         createLoginControls();
-        setVisible(true);
     }
 
     private void createLoginControls() {
+        getContentPane().removeAll();
         setLayout(new BorderLayout());
-        loginPanel = new JPanel();
+        JPanel loginPanel = new JPanel();
         loginPanel.setLayout(new BoxLayout(loginPanel, BoxLayout.Y_AXIS));
         loginField = new JTextField();
         passField = new JTextField();
@@ -111,13 +121,13 @@ public class Client extends JFrame {
         loginPanel.add(sendLogin);
         loginPanel.add(Box.createVerticalGlue());
         add(loginPanel, BorderLayout.CENTER);
-    }
-
-    private void hideLoginControls(){
-        loginPanel.setVisible(false);
+        setVisible(true);
     }
 
     private void onAuthClick() {
+        if (socket == null || socket.isClosed()) {
+            start();
+        }
         try {
             if (loginField.getText().isEmpty() || passField.getText().isEmpty()) return;
             out.writeUTF("/auth " + loginField.getText() + " " + passField.getText());
@@ -128,7 +138,9 @@ public class Client extends JFrame {
         }
     }    
 
-    private void showControlsChat() {
+    private void createChatControls() {
+        getContentPane().removeAll();
+        setLayout(new BorderLayout());
         chatArea = new JTextArea();
         chatArea.setLineWrap(true);
         chatArea.setEditable(false);
@@ -139,16 +151,16 @@ public class Client extends JFrame {
         chatMembers.setEditable(false);
         JScrollPane scrollMembers = new JScrollPane(chatMembers);
         add(scrollMembers, BorderLayout.EAST);
-        JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout());
+        JPanel chatPanel = new JPanel();
+        chatPanel.setLayout(new BorderLayout());
         textMsg = new JTextField();
         JButton sendMsg = new JButton("Send");
         ActionListener listener = e -> onSendMsg();
         textMsg.addActionListener(listener);
         sendMsg.addActionListener(listener);
-        panel.add(textMsg, BorderLayout.CENTER);
-        panel.add(sendMsg, BorderLayout.EAST);
-        add(panel, BorderLayout.SOUTH);
+        chatPanel.add(textMsg, BorderLayout.CENTER);
+        chatPanel.add(sendMsg, BorderLayout.EAST);
+        add(chatPanel, BorderLayout.SOUTH);
         setVisible(true);
     }
 

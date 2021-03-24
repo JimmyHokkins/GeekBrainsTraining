@@ -46,11 +46,11 @@ public class ClientHandler {
                 String nick = myServer.getAuthService().getNickByLoginPass(parts[1], parts[2]);
                 if (nick != null) {
                     if (!myServer.isNickBusy(nick)) {
-                        sendMsg("/authok" + nick);
+                        sendMsg("/authok " + nick);
                         name = nick;
                         myServer.broadcastMsg(name + " joins the chat.");
                         myServer.subscribe(this);
-                        myServer.broadcastMsg("/members " + myServer.getStringClients());
+                        myServer.broadcastClientsList();
                         return;
                     } else {
                         sendMsg("Account already exists.");
@@ -65,10 +65,18 @@ public class ClientHandler {
     public void readMessages() throws IOException {
         while (true) {
             String strFromClient = in.readUTF();
-            System.out.println("from " + name + ": " + strFromClient);
-            if (strFromClient.equals("/end")) {
-                out.writeUTF("/end");
-                return;
+            if (strFromClient.startsWith("/")) {
+                if (strFromClient.equals("/end")) {
+                    out.writeUTF("/end");
+                    return;
+                }
+                if (strFromClient.startsWith("/w ")) {
+                    String[] tokens = strFromClient.split("\\s");
+                    String nick = tokens[1];
+                    String msg = strFromClient.substring(4 + nick.length());
+                    myServer.sendMsgToClient(this, nick, msg);
+                }
+                continue;
             }
             myServer.broadcastMsg(name + ": " + strFromClient);
         }
@@ -85,7 +93,7 @@ public class ClientHandler {
     public void closeConnection() {
         myServer.unsubscribe(this);
         myServer.broadcastMsg(name + " left the chat.");
-        myServer.broadcastMsg("/members " + myServer.getStringClients());
+        myServer.broadcastClientsList();
         try {
             socket.close();
         } catch (IOException e) {
