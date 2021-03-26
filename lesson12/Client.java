@@ -111,10 +111,7 @@ public class Client extends JFrame {
         sendLogin.addActionListener(e -> onAuthClick());
         loginField.setAlignmentX(Component.CENTER_ALIGNMENT);
         passField.setAlignmentX(Component.CENTER_ALIGNMENT);
-        loginField.setAlignmentY(Component.CENTER_ALIGNMENT);
-        passField.setAlignmentY(Component.CENTER_ALIGNMENT);
         sendLogin.setAlignmentX(Component.CENTER_ALIGNMENT);
-        sendLogin.setAlignmentY(Component.CENTER_ALIGNMENT);
         loginPanel.add(Box.createVerticalGlue());
         loginPanel.add(loginField);
         loginPanel.add(passField);
@@ -134,7 +131,7 @@ public class Client extends JFrame {
             loginField.setText("");
             passField.setText("");
         } catch (Exception e) {
-            e.printStackTrace();
+            loginField.setText("Can't authenticate.");
         }
     }    
 
@@ -170,7 +167,7 @@ public class Client extends JFrame {
             out.writeUTF(textMsg.getText());
             textMsg.setText("");
         } catch (Exception e) {
-            e.printStackTrace();
+            textMsg.setText("Can't send the message to the server.");
         }
     }
 }
